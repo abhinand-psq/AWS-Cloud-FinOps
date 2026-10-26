@@ -66,27 +66,27 @@ Screenshots from the implementation and dry-run validation are included below.
 
 ### Lambda function and schedule
 
-![Lambda function overview](screenshots/lambda-overview.png)
+![Lambda function overview](./screenshots/lambda-overview.png)
 
 ### EBS volume used for validation
 
 Volume details:
 
-![Temporary EBS volume details](screenshots/ebs-volume-details.png)
+![Temporary EBS volume details](./screenshots/ebs-volume-details.png)
 
 The cleanup tag used by the scan:
 
-![EBS cleanup tag](screenshots/ebs-cleanup-tag.png)
+![EBS cleanup tag](./screenshots/ebs-cleanup-tag.png)
 
 ### Lambda dry-run execution
 
 CloudWatch execution logs show that the function found one tagged available volume and identified it as a candidate:
 
-![CloudWatch execution logs](screenshots/cloudwatch-execution-logs.png)
+![CloudWatch execution logs](./screenshots/cloudwatch-execution-logs.png)
 
 Focused view of the dry-run candidate message:
 
-![Dry-run candidate log](screenshots/dry-run-candidate-log.png)
+![Dry-run candidate log](./screenshots/dry-run-candidate-log.png)
 
 ## Measurable validation
 
