@@ -1,0 +1,3 @@
+**AWS Infrastructure Automation and Cost Optimization**
+
+Implemented AWS automation using EC2 Auto Scaling with CloudWatch metrics and AWS Lambda for EBS resource cleanup. Configured CPU-based target tracking to automatically scale EC2 instances up and down based on workload demand. Developed a scheduled Lambda function using Boto3 to identify tagged, unused EBS volumes and snapshots based on age criteria, with CloudWatch logging and dry-run validation to prevent unintended deletion.
