@@ -101,8 +101,4 @@ The CloudWatch CPU utilization graph shows the workload spike followed by utiliz
 
 The project demonstrates elastic capacity management that can help reduce unnecessary compute capacity during lower demand. **No specific cost savings percentage is claimed**, because actual cost reduction was not measured.
 
-## Notes
 
-- The scaling events were triggered by the target tracking policy; capacity was not manually changed during the evidence capture.
-- The initial user-requested provisioning event is distinct from the policy-triggered scale-out activity.
-- Scaling behavior depends on CloudWatch metric evaluation, instance warm-up, cooldown behavior, and the Auto Scaling Group's minimum and maximum capacity.
