@@ -96,9 +96,4 @@ Focused view of the dry-run candidate message:
 - Normal cleanup thresholds: **7 days for volumes** and **30 days for snapshots**.
 - Scheduled invocation: **daily** through EventBridge.
 
-## Notes and limitations
 
-- This is a learning project; it does not claim a measured percentage of AWS cost reduction.
-- Lambda candidate detection was tested in dry-run mode. Automated deletion is not yet verified.
-- Before enabling deletion, restore the age check, review IAM permissions, and test with disposable resources.
-- Do not tag important production resources with `Cleanup=true` unless they are intentionally eligible for cleanup.
