@@ -4,7 +4,9 @@
 
 This section documents practical troubleshooting scenarios performed on an Ubuntu EC2 instance running a Node.js application behind NGINX.
 
-The exercises involved investigating service failures, systemd errors, HTTP 502 responses, application logs, and CPU and memory usage. Each scenario focused on identifying the problem, investigating relevant system information, applying corrective actions, and verifying recovery.
+The exercises involved investigating systemd errors, service failures, HTTP 502 responses, application logs, listening addresses, and CPU and memory utilization.
+
+The troubleshooting process focused on identifying symptoms, investigating relevant system information, determining the underlying cause, applying corrective actions, and verifying recovery.
 
 ## Environment
 
@@ -25,7 +27,7 @@ The exercises involved investigating service failures, systemd errors, HTTP 502 
 
 Encountered a systemd service startup failure related to the application's working directory (`chdir`).
 
-The error was investigated using service status and logs to understand why systemd could not start the application correctly.
+The service was unable to start correctly, so its status and logs were inspected to investigate the configuration issue.
 
 ![systemd chdir error](./screenshots/01-systemd-chdir-error.png)
 
@@ -51,7 +53,7 @@ After addressing the service configuration issue, the application service was re
 
 Linux service logs are an important source of information when diagnosing application failures.
 
-During the exercise, a permission-related error was encountered while accessing logs.
+During the exercise, a permission-related error was encountered while accessing service logs.
 
 ![journalctl permission denied](./screenshots/02-journalctl-permission-denied.png)
 
@@ -79,27 +81,17 @@ This exercise involved investigating service logs and understanding the permissi
 
 ### Problem
 
-The Node.js application was accessed through NGINX as a reverse proxy. During testing, an HTTP **502 Bad Gateway** response was encountered.
+The Node.js application was deployed behind NGINX as a reverse proxy on an EC2 instance.
+
+When accessing the **EC2 public IP address through port 80**, the browser displayed an NGINX `502 Bad Gateway` error.
 
 ![NGINX 502 Bad Gateway](./screenshots/linux-nginx-nodejs-502-error.png)
 
-A 502 response indicates that NGINX was unable to obtain a valid response from its upstream application.
+NGINX was running and accepting incoming HTTP requests. However, the application behind the reverse proxy was unavailable.
 
 ### Investigation
 
-The troubleshooting process involved examining the application and proxy components:
-
-- Checking whether the Node.js service was running.
-- Inspecting systemd service status.
-- Reviewing NGINX error logs.
-- Checking the application's listening address.
-- Testing the application through NGINX.
-
-### NGINX error logs
-
-![NGINX error logs](./screenshots/linux-nginx-nodejs-error-logs.png)
-
-### Useful commands
+The investigation involved checking both NGINX and the Node.js application.
 
 ```bash
 # Check Node.js service
@@ -108,21 +100,70 @@ sudo systemctl status nodejs
 # Check NGINX service
 sudo systemctl status nginx
 
+# Inspect Node.js logs
+sudo journalctl -u nodejs -n 50
+
 # Inspect NGINX error logs
 sudo tail -n 50 /var/log/nginx/error.log
 
 # Check listening ports
 sudo ss -tulpn
-
-# Test application through NGINX
-curl -i http://localhost/
 ```
+
+### Identifying the root cause
+
+The investigation revealed that **the Node.js service was stopped while NGINX remained running**.
+
+The request flow was:
+
+1. The browser sent an HTTP request to the EC2 public IP on port 80.
+2. NGINX accepted the incoming request.
+3. NGINX attempted to forward the request to the Node.js upstream application.
+4. The Node.js service was not running.
+5. NGINX returned a `502 Bad Gateway` response.
+
+This demonstrated how an application failure can result in an HTTP error even when the reverse proxy itself is operational.
+
+### Node.js service investigation
+
+![Node.js systemd service stopped](./screenshots/nodejs-systemd-stopped.png)
+
+Service logs were inspected to investigate the stopped application.
+
+![Node.js journalctl logs](./screenshots/nodejs-journelctl.png)
+
+### NGINX error log investigation
+
+NGINX error logs were examined to understand why the upstream application could not be reached.
+
+![NGINX error logs](./screenshots/linux-nginx-nodejs-error-logs.png)
 
 ### Recovery and validation
 
-After investigating the application and NGINX configuration, the services were recovered and the application was tested again.
+The Node.js service was recovered, and its status was verified.
 
-![NGINX and Node.js service recovery](./screenshots/linux-nginx-nodejs-service-recovery.png)
+```bash
+sudo systemctl restart nodejs
+sudo systemctl status nodejs
+```
+
+The application was then tested again through NGINX.
+
+![Node.js and NGINX service recovery](./screenshots/linux-nginx-nodejs-service-recovery.png)
+
+![Node.js running through NGINX](./screenshots/nodejs-running-through-nginx.png)
+
+### Key learning
+
+An NGINX `502 Bad Gateway` error does not necessarily mean NGINX itself has failed.
+
+When NGINX is operational but the application is unavailable, troubleshooting should include:
+
+- Upstream application service status
+- Application logs
+- NGINX error logs
+- Application listening address and port
+- Connectivity between NGINX and the application
 
 ---
 
@@ -154,33 +195,13 @@ The application was also accessed through NGINX:
 
 ---
 
-## 5. Troubleshooting Stopped Services
-
-Service failures were deliberately examined by checking the service state and reviewing logs.
-
-### Node.js service stopped
-
-![Node.js service stopped](./screenshots/nodejs-systemd-stopped.png)
-
-### Inspecting Node.js logs
-
-![Node.js journal logs](./screenshots/nodejs-journelctl.png)
-
-### NGINX service stopped
-
-![NGINX service stopped](./screenshots/nginx-systemd-stopped.png)
-
-The exercises reinforced the importance of checking both the application service and the reverse proxy when investigating application availability.
-
----
-
-## 6. CPU Resource Investigation
+## 5. CPU Resource Investigation
 
 CPU stress testing was performed to observe resource utilization and system behavior under increased load.
 
 ![CPU saturation](./screenshots/01-cpu-saturation.png)
 
-### Useful commands
+### Investigation commands
 
 ```bash
 # View CPU and process activity
@@ -197,7 +218,7 @@ This exercise helped connect Linux resource monitoring with the EC2 Auto Scaling
 
 ---
 
-## 7. Memory Usage Investigation and Recovery
+## 6. Memory Usage Investigation and Recovery
 
 A controlled memory allocation test was used to investigate process-level memory usage.
 
@@ -219,7 +240,7 @@ The process was investigated using Linux memory and process information.
 
 ![Memory process investigation](./screenshots/memory-process-investigation.png)
 
-Commands used during the investigation included:
+Commands used during the investigation:
 
 ```bash
 # Inspect memory usage
@@ -246,10 +267,12 @@ This was a controlled process-level memory investigation. It was not a system-wi
 
 - Linux service troubleshooting using systemd
 - Application log investigation using journalctl
+- Investigating systemd working-directory errors
+- Linux permission troubleshooting
 - NGINX reverse proxy troubleshooting
-- HTTP 502 investigation
+- HTTP 502 investigation and root cause identification
+- Node.js service recovery
 - Process and listening-port inspection
 - CPU and memory utilization investigation
 - Controlled resource testing and recovery
-- Service health verification after troubleshooting
-
+- Application health verification after troubleshooting
