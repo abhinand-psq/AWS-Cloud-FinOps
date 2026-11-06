@@ -77,6 +77,56 @@ This exercise involved investigating service logs and understanding the permissi
 
 ---
 
+## CPU and Memory Stress Testing — Application Reliability
+
+### Objective
+Validate whether the EC2 instance and the Node.js application behind NGINX remain responsive during simulated CPU and memory pressure.
+
+### 1. Simulate CPU and Memory Pressure
+
+Used `stress-ng` to generate CPU and memory pressure on the EC2 instance. Monitored system resource utilization using `top`.
+
+```bash
+top
+```
+
+During the test:
+- CPU utilization reached 100%.
+- Two CPU stress workers consumed approximately 52% CPU each.
+- The memory stress process used approximately 500 MiB of resident memory.
+- Approximately 839 MiB of memory remained available.
+
+![EC2 CPU and memory stress test](./screenshots/cpu-memory-stress.png)
+
+### 2. Test HTTP Availability from the Local Machine
+
+While the EC2 instance was under resource pressure, sent HTTP requests from my local machine to the EC2 public IP through NGINX.
+
+```bash
+for i in {1..10}; do
+    curl -s -o /dev/null -w "HTTP: %{http_code} | %{time_total}s\n" http://EC2_PUBLIC_IP/
+done
+```
+
+### Test Results
+
+| Metric | Result |
+|---|---:|
+| HTTP requests sent | 10 |
+| Successful responses | 10/10 |
+| HTTP status | 200 |
+| Average response time | 98.6 ms |
+| Minimum response time | 85.7 ms |
+| Maximum response time | 115.2 ms |
+
+![HTTP response validation during resource stress](./screenshots/http-response-under-stress.png)
+
+### Outcome
+
+Despite high CPU utilization and memory pressure, all 10 HTTP requests returned **HTTP 200**, with an average response time of approximately **98.6 ms**.
+
+This test demonstrated that the application remained responsive during the simulated resource-pressure scenario.
+
 ## 3. Troubleshooting NGINX 502 Bad Gateway
 
 ### Problem
