@@ -81,11 +81,11 @@ Developed Bash scripts to automate application health checks and system resource
 │   └── screenshots/
 
 └── automation/
-        ├── README.md
-        ├── screenshots/
-        └── scripts/
-            ├── app-health-check.sh
-            └── resource-monitor.sh            
+    ├── README.md
+    ├── screenshots/
+    └── scripts/
+        ├── app-health-check.sh
+        └── resource-monitor.sh            
 ```    
 
 ## Skills Demonstrated
